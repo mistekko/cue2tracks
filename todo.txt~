@@ -1,0 +1,19 @@
+[======]           ||'
+   ||	           ||
+   ||    //\\   //'||  //\\
+  .||.   \\//   \\//|. \\//
+
+
+
+
+
+
+try to detect album cover and attach it to each converted file
+
+          #get file extension
+
+          #accept naming convention format from user?
+
+          #maybe make the command an fstring, referencing variables that can be assigned each iteration of the conversion
+
+          #add debug

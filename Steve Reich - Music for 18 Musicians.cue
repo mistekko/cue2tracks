@@ -1,0 +1,63 @@
+REM GENRE Classical
+REM DATE 2015
+REM DISCID B80DE40E
+REM COMMENT "ExactAudioCopy v1.0b4"
+PERFORMER "Steve Reich"
+TITLE "Music for 18 Musicians"
+FILE "Steve Reich - Music for 18 Musicians.flac" WAVE
+  TRACK 01 AUDIO
+    TITLE "Pulses"
+    PERFORMER "Steve Reich"
+    INDEX 01 00:00:00
+  TRACK 02 AUDIO
+    TITLE "Section I"
+    PERFORMER "Steve Reich"
+    INDEX 01 05:22:58
+  TRACK 03 AUDIO
+    TITLE "Section II"
+    PERFORMER "Steve Reich"
+    INDEX 01 09:41:54
+  TRACK 04 AUDIO
+    TITLE "Section IIIA"
+    PERFORMER "Steve Reich"
+    INDEX 01 14:08:00
+  TRACK 05 AUDIO
+    TITLE "Section IIIB"
+    PERFORMER "Steve Reich"
+    INDEX 01 18:04:36
+  TRACK 06 AUDIO
+    TITLE "Section IV"
+    PERFORMER "Steve Reich"
+    INDEX 01 22:09:41
+  TRACK 07 AUDIO
+    TITLE "Section V"
+    PERFORMER "Steve Reich"
+    INDEX 01 27:08:18
+  TRACK 08 AUDIO
+    TITLE "Section VI"
+    PERFORMER "Steve Reich"
+    INDEX 01 32:32:12
+  TRACK 09 AUDIO
+    TITLE "Section VII"
+    PERFORMER "Steve Reich"
+    INDEX 01 37:09:47
+  TRACK 10 AUDIO
+    TITLE "Section VIII"
+    PERFORMER "Steve Reich"
+    INDEX 01 40:52:28
+  TRACK 11 AUDIO
+    TITLE "Section IX"
+    PERFORMER "Steve Reich"
+    INDEX 01 44:38:42
+  TRACK 12 AUDIO
+    TITLE "Section X"
+    PERFORMER "Steve Reich"
+    INDEX 01 49:03:71
+  TRACK 13 AUDIO
+    TITLE "Section XI"
+    PERFORMER "Steve Reich"
+    INDEX 01 50:36:40
+  TRACK 14 AUDIO
+    TITLE "Pulses"
+    PERFORMER "Steve Reich"
+    INDEX 01 54:44:09
