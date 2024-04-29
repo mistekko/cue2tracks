@@ -1,8 +1,15 @@
+#ignore directory of cue files used for testing the script
+cues
+
+#ignore all cue files in all directories (I did not write these files and so should not publish them)
+*.cue
+
+#ignore all emacs autosave files
 *#
-#*
 *~
-*cue*
+
+
+#misc
 todo.txt
 .*
 os
-cues/*
