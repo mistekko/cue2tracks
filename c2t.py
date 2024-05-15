@@ -15,16 +15,18 @@ def fix_time(input_time):
 
 
 def convert_to_seconds(time):
-    """Converts a colon-separated time in ffmpeg format into the number of seconds from epoch (i.e., 00:00:00)
+    """Converts a colon-separated time in ffmpeg format ino the number of seconds from epoch (i.e., 00:00:00)
     """
     
     times = time.split(':') #times is a list containing HH, MM, SS.mS... extracted from time
-    print(times)
-    uh = int(int(times[0])*3600 + int(times[1]) * 60 + Decimal(times[2]))
-    return uh
+    seconds = int(int(times[0])*3600 + int(times[1]) * 60 + Decimal(times[2]))
+    return seconds
 
 def subtract_times(time_one, time_two):
-    print(time_one, time_two)
+
+    """subtracts two times passed as CUE-style timestamps and returns their difference in seconds
+    """
+    
     return abs(int(convert_to_seconds(time_one)) - int(convert_to_seconds(time_two)))
 
 
@@ -43,7 +45,9 @@ def parse_cue_file(cue_path):
         list: List of track dictionaries, each containing track information.
     """
 
-    metadata = []
+    print(f"parsing file: {cue_path}")
+
+    metadata = {}
     audio_file = None
     track_list = []
 
@@ -53,17 +57,28 @@ def parse_cue_file(cue_path):
             line = line.strip()
             if not line or line.startswith("FILE"):
                 break
-            metadata.append(line)
+            if line.startswith("REM"):
+                key = line.split()[1]
+                metadata[key] = line.removeprefix(f"REM {key} ").strip("\"")
+                # print(f"\tkey: {key}\n\tvalue: {metadata[key]}")
+                num = 28-len(key)
+                print(f"{key}: {metadata[key]:>{28-len(key)}}")
+                #second word equals the rest of the list/string
+            else:
+                key = line.split()[0]
+                metadata[key] = line.removeprefix(key + " ").strip("\"")
+                print(f"{key}: {metadata[key]:>{28-len(key)}}")
+                #first word equals the rest of the list/strong
 
         # Parse audio file and extension
         audio_file = line.split()
         audio_file = " ".join(audio_file[1:-1])[1:-1] #gets rid of first and last work and first and last character of middle section
-        print(f"Converting file: {audio_file:>60}")
         file_extension = splitext(audio_file)[1]
-        print(f"Detected file extension: {file_extension:>52}")
-        metadata.append(file_extension)
+        print(f"Detected file extension: {file_extension:>5}")
+        metadata["file extension"] = file_extension
 
         # Read track information
+                      
         for track in cue:
             track = track.strip().split(' ', 2)[1]
             performer, title, isrc, index00, index01 = "", "", "", "", ""
@@ -104,26 +119,33 @@ def convert_tracks(metadata, track_list, audio_file):
 
     for a in range(0,len(track_list)): #the last track will  need a different command since it won't have a track after it from which the track's end index can be extracted
         current_track = track_list[a]
-        file_extension = metadata[len(metadata)-1]
+        file_extension = metadata["file extension"]
         current_track_file_name = current_track["track"] + ". " + current_track["title"] + "." + file_extension
         current_track_index01 = fix_time(current_track['index01'])
         
-        
         if a == len(track_list)-1:
-            ffmpeg_command = f"ffmpeg -ss {current_track_index01} -i \"{audio_file}\" -map_metadata -1 -c copy \"{current_track_file_name}\" -y"
-            break
+            ffmpeg_command = f"ffmpeg -ss {current_track_index01} -i \"{audio_file}\" -map_metadata -1 \"{current_track_file_name}\" -y"
         else:
             next_track_index01 = fix_time(track_list[a+1]['index01'])
-            print(current_track_index01, next_track_index01)
             duration = subtract_times(current_track_index01, next_track_index01)
-            ffmpeg_command = f"ffmpeg -ss {current_track_index01} -i \"{audio_file}\" -t {next_track_index01} -map_metadata -1 -c copy \"{current_track_file_name}\" -y"
-        print(ffmpeg_command) # debug line; remove in release version
-            
-        os.system(ffmpeg_command)
-    
-    
+            ffmpeg_command = f"ffmpeg -ss {current_track_index01} -t {duration} -i \"{audio_file}\" -map_metadata -1 \"{current_track_file_name}\" -y"
+        print(ffmpeg_command)
+        os.system(ffmpeg_command + " 2> /dev/null")
 
+        #The following code tags each file right after its been converted
+        id3_command = f"id3v2"
+        tags_keys = [['-a','PERFORMER'], ['-A','TITLE'], ['-c','COMMENT'], ['-g','GENRE'], ['-y','DATE']]
+        
+        for pair in tags_keys:
+            try:
+                id3_command +=f" {pair[0]} \"{metadata[pair[1]]}\"" #the quotes are allowable by id3v2. If the tagging backend is switched, we may run into some type errors.
+            except KeyError:
+                print(f"{pair[1]} not specificed... skipping")
 
+        id3_command += f" -t \"{current_track['title']}\" -T {current_track['track']} \"{current_track_file_name}\""
+        print(id3_command)
+        os.system(id3_command)
+    
 def main():
     """Main function that parses the CUE file and prints information."""
 
