@@ -9,6 +9,7 @@ Helper functions below
 """
 def fix_time(input_time):
     """Converts a time from CUE format (MM:SS:cS) to ffmpeg format (HH:MM:SS.cS)
+       Note that CUE files tend to limit our precision to hundredths of a seconds
     """
 
     return "00:"+input_time[0:-3]+"."+input_time[-2:]
@@ -161,3 +162,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
