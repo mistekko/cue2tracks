@@ -7,20 +7,14 @@ from decimal import *
 """
 Helper functions below
 """
-def fix_time(input_time):
-    """Converts a time from CUE format (MM:SS:cS) to ffmpeg format (HH:MM:SS.cS)
-       Note that CUE files tend to limit our precision to hundredths of a seconds
-    """
-
-    return "00:"+input_time[0:-3]+"."+input_time[-2:]
 
 
 def convert_to_seconds(time):
-    """Converts a colon-separated time in ffmpeg format ino the number of seconds from epoch (i.e., 00:00:00)
+    """Converts a colon-separated CUE-style time (MM:SS:cS) into the the fully numerical unit of seconds
     """
     
     times = time.split(':') #times is a list containing HH, MM, SS.mS... extracted from time
-    seconds = int(int(times[0])*3600 + int(times[1]) * 60 + Decimal(times[2]))
+    seconds = int(int(times[0])*60 + int(times[1]) + Decimal(times[2])/100)
     return seconds
 
 def subtract_times(time_one, time_two):
@@ -122,14 +116,14 @@ def convert_tracks(metadata, track_list, audio_file):
         current_track = track_list[a]
         file_extension = metadata["file extension"]
         current_track_file_name = current_track["track"] + ". " + current_track["title"] + "." + file_extension
-        current_track_index01 = fix_time(current_track['index01'])
+        current_track_index01 = convert_to_seconds(current_track['index01'])
         
         if a == len(track_list)-1:
             ffmpeg_command = f"ffmpeg -ss {current_track_index01} -i \"{audio_file}\" -map_metadata -1 \"{current_track_file_name}\" -y"
         else:
-            next_track_index01 = fix_time(track_list[a+1]['index01'])
-            duration = subtract_times(current_track_index01, next_track_index01)
-            ffmpeg_command = f"ffmpeg -ss {current_track_index01} -t {duration} -i \"{audio_file}\" -map_metadata -1 \"{current_track_file_name}\" -y"
+            next_track_index01 = convert_to_seconds(track_list[a+1]['index01'])
+            duration = current_track_index01 - next_track_index01
+            ffmpeg_command = f"ffmpeg -ss {current_track_index01} -to {next_track_index01} -i \"{audio_file}\" -map_metadata -1 \"{current_track_file_name}\" -y"
         print(ffmpeg_command)
         os.system(ffmpeg_command + " 2> /dev/null")
 
