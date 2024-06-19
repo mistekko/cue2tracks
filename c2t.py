@@ -1,14 +1,13 @@
 #! /usr/bin/env python
 import sys, os
 from os.path import splitext
-from decimal import * 
+from decimal import *
+from pprint import pp
 
 
 """
 Helper functions below
 """
-
-
 def convert_to_seconds(time):
     """Converts a colon-separated CUE-style time (MM:SS:cS) into the the fully numerical unit of seconds
     """
@@ -26,7 +25,7 @@ def subtract_times(time_one, time_two):
 
 
 """
-code of substance below
+More valuable gogde below
 """
 def parse_cue_file(cue_path):
     """Parses a CUE file and returns a dictionary containing metadata
@@ -144,16 +143,41 @@ def convert_tracks(metadata, track_list, audio_file):
 def main():
     """Main function that parses the CUE file and prints information."""
 
-    if len(sys.argv) != 2:
+    if len(sys.argv) < 2:
         print(f"Usage: {sys.argv[0]} <CUE_file>")
         sys.exit(1)
 
     cue_path = sys.argv[1]
     metadata, track_list, audio_file = parse_cue_file(sys.argv[1])
     print("Cue parsed")
-    convert_tracks(metadata, track_list, audio_file)
+
+    confirmed = False
+    if len(sys.argv) > 2:
+        for item in sys.argv:
+            if item == "-y":
+                confirmed = True
+
+    if not confirmed:        
+        print("Parsed the following information:")
+        pp(metadata, compact=True)
+        pp(track_list, compact=True)
+        pp(audio_file, compact=True)
+        print("Convert file using this metadata? [Y/n]")
+
+        confirmation = input()
+        if len(confirmation) > 0 and confirmation[0] == 'n':
+            print("User aborted conversion. Exiting...\n\nIf this was aborted due to a malfunction on the script's part, please submit an issue to the cue2tracks github MISTEKKO YOU BETTER PROVIDE A LINK ENABLING THE USER TO DO THIS BEFORE YOU PUSH THIS UPDATE TO MAIN YOU SILLY $#@^%&#$%")
+            exit
+        else:
+            print("Please remain seated; the conversion process will begin shortly")
+            confirmed = True
+            
+    if confirmed:
+        convert_tracks(metadata, track_list, audio_file)
 
 
 if __name__ == "__main__":
+    # I need a working id3v2 installation make sure this logic is actually viable
+    # if os.system("id3v2 -v") != 0:
+    #     print("This script does not have access to the id3v2 command. Either you haven't installed this application or the command is not situated in a directory included on your path.")
     main()
-    
