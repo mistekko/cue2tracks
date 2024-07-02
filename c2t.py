@@ -1,14 +1,13 @@
 #! /usr/bin/env python
 import sys, os
 from os.path import splitext
-from decimal import * 
+from decimal import *
+from pprint import pp
 
 
 """
-Helper functions below
+Helper functions 
 """
-
-
 def convert_to_seconds(time):
     """Converts a colon-separated CUE-style time (MM:SS:cS) into the the fully numerical unit of seconds
     """
@@ -25,135 +24,161 @@ def subtract_times(time_one, time_two):
     return abs(int(convert_to_seconds(time_one)) - int(convert_to_seconds(time_two)))
 
 
-"""
-code of substance below
-"""
-def parse_cue_file(cue_path):
-    """Parses a CUE file and returns a dictionary containing metadata
-    and a list of track dictionaries.
 
-    Args:
-        cue_path (str): Path to the CUE file.
+"""
+Main class containing methods for cue-2-track-ing
+"""
+class cue2tracks:
 
-    Returns:
-        dict: Dictionary containing album metadata.
-        list: List of track dictionaries, each containing track information.
+    def __init__(self):
+        print("object created")
+
+
+    
+    """
+    methods needed to not have to rewrite the entire script from scratch:
     """
 
-    print(f"parsing file: {cue_path}")
+    def parse_cue_file(self, cue_path):
+        """
+        Parses a CUE file and returns a dictionary containing metadata
+        and a list of track dictionaries.
 
-    metadata = {}
-    audio_file = None
-    track_list = []
+        Args:
+            cue_path (str): Path to the CUE file.
 
-    with open(cue_path, 'r') as cue:
-        # Read album metadata
-        for line in cue:
-            line = line.strip()
-            if not line or line.startswith("FILE"):
-                break
-            if line.startswith("REM"):
-                key = line.split()[1]
-                metadata[key] = line.removeprefix(f"REM {key} ").strip("\"")
-                # print(f"\tkey: {key}\n\tvalue: {metadata[key]}")
-                num = 28-len(key)
-                print(f"{key}: {metadata[key]:>{28-len(key)}}")
-                #second word equals the rest of the list/string
-            else:
-                key = line.split()[0]
-                metadata[key] = line.removeprefix(key + " ").strip("\"")
-                print(f"{key}: {metadata[key]:>{28-len(key)}}")
-                #first word equals the rest of the list/strong
+        Returns:
+            dict: Dictionary containing album metadata.
+            list: List of track dictionaries, each containing track information.
+        """
 
-        # Parse audio file and extension
-        audio_file = line.split()
-        audio_file = " ".join(audio_file[1:-1])[1:-1] #gets rid of first and last work and first and last character of middle section
-        file_extension = splitext(audio_file)[1]
-        print(f"Detected file extension: {file_extension:>5}")
-        metadata["file extension"] = file_extension
+        print(f"parsing file: {cue_path}")
 
-        # Read track information
-                      
-        for track in cue:
-            track = track.strip().split(' ', 2)[1]
-            performer, title, isrc, index00, index01 = "", "", "", "", ""
+        metadata = {}
+        audio_file = None
+        track_list = []
 
+        with open(cue_path, 'r') as cue:
+            # Read album metadata
             for line in cue:
                 line = line.strip()
-                if line.startswith("PERFORMER"):
-                    performer = line.split("PERFORMER ")[1].strip('\"')
-                elif line.startswith("TITLE"):
-                    title = line.strip().strip("TITLE ").strip("\"")
-                elif line.startswith("ISRC"):
-                    isrc = line.split("ISRC ")[1].strip()
-                elif line.startswith("INDEX 00"):
-                    index00 = line.split("INDEX 00 ")[1].strip()
-                elif line.startswith("INDEX 01"):
-                    index01 = line.split("INDEX 01 ")[1].strip()
-                    track_list.append({
-                        "track": track,
-                        "title": title,
-                        "performer": performer,
-                        "isrc": isrc,
-                        "index00": index00,
-                        "index01": index01,
-                    })
+                if not line or line.startswith("FILE"):
                     break
+                if line.startswith("REM"):
+                    key = line.split()[1]
+                    metadata[key] = line.removeprefix(f"REM {key} ").strip("\"")
+                    # print(f"\tkey: {key}\n\tvalue: {metadata[key]}")
+                    num = 28-len(key)
+                    print(f"{key}: {metadata[key]:>{28-len(key)}}")
+                    #second word equals the rest of the list/string
+                else:
+                    key = line.split()[0]
+                    metadata[key] = line.removeprefix(key + " ").strip("\"")
+                    print(f"{key}: {metadata[key]:>{28-len(key)}}")
+                    #first word equals the rest of the list/strong
 
-    return metadata, track_list, audio_file
+            # Parse audio file and extension
+            audio_file = line.split()
+            audio_file = " ".join(audio_file[1:-1])[1:-1] #gets rid of first and last word and first and last character of middle section
+            file_extension = splitext(audio_file)[1]
+            print(f"Detected file extension: {file_extension:>5}")
+            metadata["file extension"] = file_extension
 
-def convert_tracks(metadata, track_list, audio_file):
-    """Uses system calls to ffmpeg installation in path to convert a flac file into individual tracks according to track_list
+            # Read each track's specific metadata
+            for track in cue:
+                track = track.strip().split(' ', 2)[1]
+                performer, title, isrc, index00, index01 = "", "", "", "", ""
+                
+                for line in cue:
+                    line = line.strip()
+                    if line.startswith("PERFORMER"):
+                        performer = line.split("PERFORMER ")[1].strip('\"')
+                    elif line.startswith("TITLE"):
+                        title = line.strip().strip("TITLE ").strip("\"")
+                    elif line.startswith("ISRC"):
+                        isrc = line.split("ISRC ")[1].strip()
+                    elif line.startswith("INDEX 00"):
+                        index00 = line.split("INDEX 00 ")[1].strip()
+                    elif line.startswith("INDEX 01"):
+                        index01 = line.split("INDEX 01 ")[1].strip()
+                        track_list.append({
+                            "track": track,
+                            "title": title,
+                            "performer": performer,
+                            "isrc": isrc,
+                            "index00": index00,
+                            "index01": index01,
+                        })
+                        break
 
-    Args:
-    	track_list (dict): a dictionary containing metadata about the tracks
-    Returns:
-   	nothing
-    """
+            return metadata, track_list, audio_file
 
 
-    for a in range(0,len(track_list)): #the last track will  need a different command since it won't have a track after it from which the track's end index can be extracted
-        current_track = track_list[a]
-        file_extension = metadata["file extension"]
-        current_track_file_name = current_track["track"] + ". " + current_track["title"] + "." + file_extension
-        current_track_index01 = convert_to_seconds(current_track['index01'])
+    def convert_tracks(self, metadata, track_list, audio_file):
+        """
+        Uses system's ffmpeg installation in path to convert a flac file into individual tracks according to track_list
+
+        Args:
+            track_list (dict): a dictionary containing metadata about the tracks
+        Returns:
+            nothing
+        """
+
+
+        for a in range(0,len(track_list)): #the last track will  need a different command since it won't have a track after it from which the track's end index can be extracted
+            current_track = track_list[a]
+            file_extension = metadata["file extension"]
+            current_track_file_name = current_track["track"] + ". " + current_track["title"] + "." + file_extension
+            current_track_index01 = convert_to_seconds(current_track['index01'])
+
+            if a == len(track_list)-1:
+                ffmpeg_command = f"ffmpeg -ss {current_track_index01} -i \"{audio_file}\" -map_metadata -1 \"{current_track_file_name}\" -y"
+            else:
+                next_track_index01 = convert_to_seconds(track_list[a+1]['index01'])
+                duration = current_track_index01 - next_track_index01
+                ffmpeg_command = f"ffmpeg -ss {current_track_index01} -to {next_track_index01} -i \"{audio_file}\" -map_metadata -1 \"{current_track_file_name}\" -y"
+            print(ffmpeg_command)
+            os.system(ffmpeg_command + " 2> /dev/null")
+
+            #The following code tags each file right after its been converted
+            id3_command = f"id3v2"
+            tags_keys = [['-a','PERFORMER'], ['-A','TITLE'], ['-c','COMMENT'], ['-g','GENRE'], ['-y','DATE']]
+
+            for pair in tags_keys:
+                try:
+                    id3_command +=f" {pair[0]} \"{metadata[pair[1]]}\"" 
+                except KeyError:
+                    print(f"{pair[1]} not specificed... skipping")
+
+            id3_command += f" -t \"{current_track['title']}\" -T {current_track['track']} \"{current_track_file_name}\""
+            print(id3_command)
+            os.system(id3_command)
+
+
+    def main(self):
+        """
+        Directs the execution of the script
+        """
+
+        """
+        in a very-soon-to-be-released update, we'll have a more proper way of determining the passed cue file.
+        Both in this iteration AND in the just mentioned one, we'll determine cue_path outside of the parsing
+        function. It will almost definitely end up being an instance variable since it'll be sorted from the
+        rest of the elements in sys.argv at the same time as instance variable assignment.
+        """
+        cue_path = sys.argv[1]
         
-        if a == len(track_list)-1:
-            ffmpeg_command = f"ffmpeg -ss {current_track_index01} -i \"{audio_file}\" -map_metadata -1 \"{current_track_file_name}\" -y"
-        else:
-            next_track_index01 = convert_to_seconds(track_list[a+1]['index01'])
-            duration = current_track_index01 - next_track_index01
-            ffmpeg_command = f"ffmpeg -ss {current_track_index01} -to {next_track_index01} -i \"{audio_file}\" -map_metadata -1 \"{current_track_file_name}\" -y"
-        print(ffmpeg_command)
-        os.system(ffmpeg_command + " 2> /dev/null")
+        metadata, track_list, audio_file = self.parse_cue_file(cue_path)
+        print("Cue parsed")
 
-        #The following code tags each file right after its been converted
-        id3_command = f"id3v2"
-        tags_keys = [['-a','PERFORMER'], ['-A','TITLE'], ['-c','COMMENT'], ['-g','GENRE'], ['-y','DATE']]
-        
-        for pair in tags_keys:
-            try:
-                id3_command +=f" {pair[0]} \"{metadata[pair[1]]}\"" #the quotes are allowable by id3v2. If the tagging backend is switched, we may run into some type errors.
-            except KeyError:
-                print(f"{pair[1]} not specificed... skipping")
-
-        id3_command += f" -t \"{current_track['title']}\" -T {current_track['track']} \"{current_track_file_name}\""
-        print(id3_command)
-        os.system(id3_command)
-    
-def main():
-    """Main function that parses the CUE file and prints information."""
-
-    if len(sys.argv) != 2:
-        print(f"Usage: {sys.argv[0]} <CUE_file>")
-        sys.exit(1)
-
-    cue_path = sys.argv[1]
-    metadata, track_list, audio_file = parse_cue_file(sys.argv[1])
-    print("Cue parsed")
-    convert_tracks(metadata, track_list, audio_file)
+        self.convert_tracks(metadata, track_list, audio_file)
 
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) < 2:
+        print(f"Usage: {sys.argv[0]} <CUE_file>")
+        sys.exit(1)
+    object = cue2tracks()
+
+    object.main()
     
