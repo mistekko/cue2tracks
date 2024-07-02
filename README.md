@@ -5,6 +5,8 @@ This program uses a .cue file to guide it in splitting a single audio file with 
 ## Features
 * works with any audio format supported by ffmpeg
 * parses very very quickly
+* conversion is lossless since no reencoding takes place
+* conversion is also very quick for the same reason, only limited in speed by the amount of data being "converted"
 
 ## Installation
 This package requires almost no installation since all the code is contained in one file which can be linked or moved to a directory in $PATH, or simply executed in a normal directory. It does, however, have a couple of dependencies:
