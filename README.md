@@ -8,6 +8,17 @@ This program uses a .cue file to guide it in splitting a single audio file with 
 * conversion is lossless since no reencoding takes place
 * conversion is also very quick for the same reason, only limited in speed by the amount of data being "converted"
 
+## Known limitations
+### To be patched in upcoming versions
+* Does not work on non-UTF-8 cue files. This is often an issue for me, so expect it to be fixed rather soon
+* Does not work on multi-file cue/audio combinations (e.g., album-name-part1.flac, album-name-part2.flac)
+* Does not automatically write album cover to each file
+  * while we work on this issue, you can use tools such as [puddletag](https://docs.puddletag.net/) for batch-writing of album covers
+
+### Unlikely to ever be patched
+* Can only convert formats supported by your compilation of ffmpeg
+
+
 ## Installation
 This package requires almost no installation since all the code is contained in one file which can be linked or moved to a directory in $PATH, or simply executed in a normal directory. It does, however, have a couple of dependencies:
 
