@@ -48,7 +48,7 @@ def parse_args():
 """Main class containing methods for cue-2-track-ing"""
 class cue2tracks:
 
-    def __init__(self):
+    def __init__(self, y=False):
         print("object created")
 
         
@@ -148,8 +148,8 @@ class cue2tracks:
                      ['-g','GENRE'],
                      ['-y','DATE']]
         
-        for a in range(0,len(track_list)):
-            current_track = track_list[a]
+        for item in range(0,len(track_list)):
+            current_track = track_list[item]
             file_extension = metadata["file extension"]
             current_track_file_name = f"{current_track['track']}."\
                                     + f" {current_track['title']}"\
@@ -158,14 +158,15 @@ class cue2tracks:
 
             # the last track needs a separate command since it can't use
             # the next track's index as reference
-            if a == len(track_list)-1:
+            if item == len(track_list)-1:
                 ffmpeg_command = f"ffmpeg"\
                                + f" -ss {current_track_index01}"\
                                + f" -i \"{audio_file}\" -map_metadata -1"\
+                               + f" -c:a copy"\
                                + f" \"{current_track_file_name}\""\
                                + " -y"
             else:
-                next_track_index01 = convert_to_seconds(track_list[a+1]['index01'])
+                next_track_index01 = convert_to_seconds(track_list[item+1]['index01'])
                 duration = current_track_index01 - next_track_index01
                 ffmpeg_command = f"ffmpeg"\
                                + f" -ss {current_track_index01}"\
@@ -195,21 +196,10 @@ class cue2tracks:
             os.system(id3_command)
 
 
-    def main(self):
+    def main(self, cue_path):
         """
         Directs the execution of the script
         """
-
-        """
-        in a very-soon-to-be-released update, we'll have a more proper
-        way of determining the passed cue file. Both in this iteration
-        AND in the just mentioned one, we'll determine cue_path outside
-        of the parsing function. It will almost definitely end up being
-        an instance variable since it'll be sorted from the rest of the
-        elements in sys.argv at the same time as instance variable
-        assignment.
-        """
-        cue_path = sys.argv[1]
         
         metadata, track_list, audio_file = self.parse_cue_file(cue_path)
         print("Cue parsed")
@@ -221,10 +211,11 @@ if __name__ == "__main__":
 
 
     parser = parse_args()
+    print(parser)
     if len(sys.argv) < 2:
         sys.exit(1)
         
     object = cue2tracks()
 
-    object.main()
+    object.main(parser.cue_path)
     
