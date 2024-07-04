@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 import sys
 import os
+import argparse
 from os.path import splitext
 from decimal import *
 from pprint import pp
@@ -21,26 +22,40 @@ def convert_to_seconds(time):
 
 def subtract_times(time_one, time_two):
 
-    """subtracts two times passed as CUE-style timestamps and returns their difference in seconds"""
+    """subtracts two times passed as CUE-syle timestamps and returns their difference in seconds"""
     
     return (abs(int(convert_to_seconds(time_one))
             - int(convert_to_seconds(time_two))))
+
+def parse_args():
+
+    """returns ArgumentParser for cue2tracks. 'c2t --help' for more info"""
+    
+    parser = argparse.ArgumentParser(
+    		  prog='cue2tracks',
+                  description='A small Python program for converting single-file albums to one file for each track using a CUE sheet as reference')
+
+    parser.add_argument('cue_path')
+    parser.add_argument('-y', action='store_true', help='approve any requests for your approbation, i.e., before conversion')
+
+    if len(sys.argv) > 1:
+        return parser.parse_args()
+    else:
+        parser.parse_args(['-h'])
 
 
 
 """Main class containing methods for cue-2-track-ing"""
 class cue2tracks:
 
-    def __init__(self):
-        print("object created")
-
+    def __init__(self, y=False):
+        self.y = y
         
     """
     Methods used for parsing and conversion are found below. These are
-    all holdevers from before they were methods of a class, but I've
+    all holdovers from before they were methods of a class, but I've
     kept them since the devision seems logical to me
-    """
-    
+    """    
     def parse_cue_file(self, cue_path):
         """
         Parses a CUE file and returns a dictionary containing metadata
@@ -132,32 +147,34 @@ class cue2tracks:
                      ['-g','GENRE'],
                      ['-y','DATE']]
         
-        for a in range(0,len(track_list)):
-            current_track = track_list[a]
+        for item in range(0,len(track_list)):
+            current_track = track_list[item]
             file_extension = metadata["file extension"]
-            current_track_file_name = current_track["track"] + ". "
-                                      + current_track["title"]
-                                      + "." + file_extension
+            current_track_file_name = f"{current_track['track']}."\
+                                    + f" {current_track['title']}"\
+                                    + f"{file_extension}"
             current_track_index01 = convert_to_seconds(current_track['index01'])
 
             # the last track needs a separate command since it can't use
             # the next track's index as reference
-            if a == len(track_list)-1:
-                ffmpeg_command = f"ffmpeg\
-                                     -ss {current_track_index01}\
-                                     -i \"{audio_file}\" -map_metadata\
-                                     -1 \"{current_track_file_name}\"\
-                                     -y"
+            if item == len(track_list)-1:
+                ffmpeg_command = f"ffmpeg"\
+                               + f" -ss {current_track_index01}"\
+                               + f" -i \"{audio_file}\" -map_metadata -1"\
+                               + f" -c:a copy"\
+                               + f" \"{current_track_file_name}\""\
+                               + " -y"
             else:
-                next_track_index01 = convert_to_seconds(track_list[a+1]['index01'])
+                next_track_index01 = convert_to_seconds(track_list[item+1]['index01'])
                 duration = current_track_index01 - next_track_index01
-                ffmpeg_command = f"ffmpeg\
-                                     -ss {current_track_index01}\
-                                     -to {next_track_index01}\
-                                     -i \"{audio_file}\"\
-                                     -map_metadata -1\ #get rid of auto-generated ffmpeg metadata
-                                     \"{current_track_file_name}\"\
-                                     -y" 
+                ffmpeg_command = f"ffmpeg"\
+                               + f" -ss {current_track_index01}"\
+                               + f" -to {next_track_index01}"\
+                               + f" -i \"{audio_file}\""\
+                               + f" -map_metadata -1"\
+                               + f" -c:a copy"\
+                               + f" \"{current_track_file_name}\""\
+                               + f" -y"
             print(ffmpeg_command)
             os.system(ffmpeg_command + " 2> /dev/null")
 
@@ -170,42 +187,42 @@ class cue2tracks:
                 except KeyError:
                     print(f"{pair[1]} not specificed... skipping")
 
-            id3_command += f" -t \"{current_track['title']}\" \
-                              -a \"{current_track['performer']}\" \
-                              -T   {current_track['track']} \
-              		         \"{current_track_file_name}\""
+            id3_command += f" -t \"{current_track['title']}\""\
+                         + f" -a \"{current_track['performer']}\""\
+                         + f" -T \"{current_track['track']}\""\
+              		 + f" \"{current_track_file_name}\""
             print(id3_command)
             os.system(id3_command)
 
 
-    def main(self):
+    def main(self, cue_path):
         """
         Directs the execution of the script
         """
-
-        """
-        in a very-soon-to-be-released update, we'll have a more proper
-        way of determining the passed cue file. Both in this iteration
-        AND in the just mentioned one, we'll determine cue_path outside
-        of the parsing function. It will almost definitely end up being
-        an instance variable since it'll be sorted from the rest of the
-        elements in sys.argv at the same time as instance variable
-        assignment.
-        """
-        cue_path = sys.argv[1]
         
         metadata, track_list, audio_file = self.parse_cue_file(cue_path)
         print("Cue parsed")
 
-        self.convert_tracks(metadata, track_list, audio_file)
+        if self.y: 
+            self.convert_tracks(metadata, track_list, audio_file)
+        else:
+            confirmation = input("Convert tracks with parsed metadata? [Y/n]:") or 'y'
+            if confirmation[0].lower() == 'n':
+                exit()
+            else:
+                self.convert_tracks(metadata, track_list, audio_file)
+
 
 
 if __name__ == "__main__":
 
-    if len(sys.argv) < 2:
-        print(f"Usage: {sys.argv[0]} <CUE_file>")
-        sys.exit(1)
-    object = cue2tracks()
 
-    object.main()
+    parser = parse_args()
+    print(parser)
+    if len(sys.argv) < 2:
+        sys.exit(1)
+        
+    object = cue2tracks(y=parser.y)
+
+    object.main(parser.cue_path)
     
