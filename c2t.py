@@ -49,8 +49,7 @@ def parse_args():
 class cue2tracks:
 
     def __init__(self, y=False):
-        print("object created")
-
+        self.y = y
         
     """
     Methods used for parsing and conversion are found below. These are
@@ -204,7 +203,15 @@ class cue2tracks:
         metadata, track_list, audio_file = self.parse_cue_file(cue_path)
         print("Cue parsed")
 
-        self.convert_tracks(metadata, track_list, audio_file)
+        if self.y: 
+            self.convert_tracks(metadata, track_list, audio_file)
+        else:
+            confirmation = input("Convert tracks with parsed metadata? [Y/n]:") or 'y'
+            if confirmation[0].lower() == 'n':
+                exit()
+            else:
+                self.convert_tracks(metadata, track_list, audio_file)
+
 
 
 if __name__ == "__main__":
@@ -215,7 +222,7 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         sys.exit(1)
         
-    object = cue2tracks()
+    object = cue2tracks(y=parser.y)
 
     object.main(parser.cue_path)
     
