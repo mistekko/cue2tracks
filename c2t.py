@@ -27,6 +27,19 @@ def subtract_times(time_one, time_two):
     return (abs(int(convert_to_seconds(time_one))
             - int(convert_to_seconds(time_two))))
 
+def create_parser():
+
+    """returns ArgumentParser for cue2tracks. 'c2t --help' for more info"""
+    
+    parser = argparse.ArgumentParser(
+    		  prog='cue2tracks',
+                  description='A small Python program for converting single-file albums to one file for each track using a CUE sheet as reference')
+
+    parser.add_argument('cue_path')
+    parser.add_argument('-y', action='store_true')
+    parser.add_argument('-h', '--help', action='help')  
+
+    return parser.parse_args(sys.argv[1:])
 
 
 """Main class containing methods for cue-2-track-ing"""
@@ -136,29 +149,30 @@ class cue2tracks:
         for a in range(0,len(track_list)):
             current_track = track_list[a]
             file_extension = metadata["file extension"]
-            current_track_file_name = current_track["track"] + ". "
-                                      + current_track["title"]
-                                      + "." + file_extension
+            current_track_file_name = f"{current_track['track']}."\
+                                    + f" {current_track['title']}"\
+                                    + f"{file_extension}"
             current_track_index01 = convert_to_seconds(current_track['index01'])
 
             # the last track needs a separate command since it can't use
             # the next track's index as reference
             if a == len(track_list)-1:
-                ffmpeg_command = f"ffmpeg\
-                                     -ss {current_track_index01}\
-                                     -i \"{audio_file}\" -map_metadata\
-                                     -1 \"{current_track_file_name}\"\
-                                     -y"
+                ffmpeg_command = f"ffmpeg"\
+                               + f" -ss {current_track_index01}"\
+                               + f" -i \"{audio_file}\" -map_metadata -1"\
+                               + f" \"{current_track_file_name}\""\
+                               + " -y"
             else:
                 next_track_index01 = convert_to_seconds(track_list[a+1]['index01'])
                 duration = current_track_index01 - next_track_index01
-                ffmpeg_command = f"ffmpeg\
-                                     -ss {current_track_index01}\
-                                     -to {next_track_index01}\
-                                     -i \"{audio_file}\"\
-                                     -map_metadata -1\ #get rid of auto-generated ffmpeg metadata
-                                     \"{current_track_file_name}\"\
-                                     -y" 
+                ffmpeg_command = f"ffmpeg"\
+                               + f" -ss {current_track_index01}"\
+                               + f" -to {next_track_index01}"\
+                               + f" -i \"{audio_file}\""\
+                               + f" -map_metadata -1"
+                               + f" -c:a copy"\    
+                               + f" \"{current_track_file_name}\""\
+                               + f" -y"
             print(ffmpeg_command)
             os.system(ffmpeg_command + " 2> /dev/null")
 
@@ -171,10 +185,10 @@ class cue2tracks:
                 except KeyError:
                     print(f"{pair[1]} not specificed... skipping")
 
-            id3_command += f" -t \"{current_track['title']}\" \
-                              -a \"{current_track['performer']}\" \
-                              -T   {current_track['track']} \
-              		         \"{current_track_file_name}\""
+            id3_command += f" -t \"{current_track['title']}\""\
+                         + f" -a \"{current_track['performer']}\""\
+                         + f" -T \"{current_track['track']}\""\
+              		 + f" \"{current_track_file_name}\""
             print(id3_command)
             os.system(id3_command)
 
@@ -202,10 +216,11 @@ class cue2tracks:
 
 
 if __name__ == "__main__":
-
+    
     if len(sys.argv) < 2:
         print(f"Usage: {sys.argv[0]} <CUE_file>")
         sys.exit(1)
+        
     object = cue2tracks()
 
     object.main()
