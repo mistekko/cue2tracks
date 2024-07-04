@@ -22,12 +22,12 @@ def convert_to_seconds(time):
 
 def subtract_times(time_one, time_two):
 
-    """subtracts two times passed as CUE-style timestamps and returns their difference in seconds"""
+    """subtracts two times passed as CUE-syle timestamps and returns their difference in seconds"""
     
     return (abs(int(convert_to_seconds(time_one))
             - int(convert_to_seconds(time_two))))
 
-def create_parser():
+def parse_args():
 
     """returns ArgumentParser for cue2tracks. 'c2t --help' for more info"""
     
@@ -36,10 +36,13 @@ def create_parser():
                   description='A small Python program for converting single-file albums to one file for each track using a CUE sheet as reference')
 
     parser.add_argument('cue_path')
-    parser.add_argument('-y', action='store_true')
-    parser.add_argument('-h', '--help', action='help')  
+    parser.add_argument('-y', action='store_true', help='approve any requests for your approbation, i.e., before conversion')
 
-    return parser.parse_args(sys.argv[1:])
+    if len(sys.argv) > 1:
+        return parser.parse_args()
+    else:
+        parser.parse_args(['-h'])
+
 
 
 """Main class containing methods for cue-2-track-ing"""
@@ -51,10 +54,9 @@ class cue2tracks:
         
     """
     Methods used for parsing and conversion are found below. These are
-    all holdevers from before they were methods of a class, but I've
+    all holdovers from before they were methods of a class, but I've
     kept them since the devision seems logical to me
-    """
-    
+    """    
     def parse_cue_file(self, cue_path):
         """
         Parses a CUE file and returns a dictionary containing metadata
@@ -169,8 +171,8 @@ class cue2tracks:
                                + f" -ss {current_track_index01}"\
                                + f" -to {next_track_index01}"\
                                + f" -i \"{audio_file}\""\
-                               + f" -map_metadata -1"
-                               + f" -c:a copy"\    
+                               + f" -map_metadata -1"\
+                               + f" -c:a copy"\
                                + f" \"{current_track_file_name}\""\
                                + f" -y"
             print(ffmpeg_command)
@@ -216,9 +218,10 @@ class cue2tracks:
 
 
 if __name__ == "__main__":
-    
+
+
+    parser = parse_args()
     if len(sys.argv) < 2:
-        print(f"Usage: {sys.argv[0]} <CUE_file>")
         sys.exit(1)
         
     object = cue2tracks()
