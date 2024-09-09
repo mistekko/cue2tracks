@@ -36,7 +36,9 @@ def parse_args():
                   description='A small Python program for converting single-file albums to one file for each track using a CUE sheet as reference')
 
     parser.add_argument('cue_path')
-    parser.add_argument('-y', action='store_true', help='approve any requests for your approbation, i.e., before conversion')
+    parser.add_argument('-y',
+                        action='store_true',
+                        help='approve any requests for your approbation, i.e., before conversion')
 
     if len(sys.argv) > 1:
         return parser.parse_args()
