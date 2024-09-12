@@ -22,7 +22,10 @@ def convert_to_seconds(time):
 
 def subtract_times(time_one, time_two):
 
-    """subtracts two times passed as CUE-syle timestamps and returns their difference in seconds"""
+    """
+    subtracts two times passed as CUE-syle timestamps and returns
+    their difference in seconds
+    """
     
     return (abs(int(convert_to_seconds(time_one))
             - int(convert_to_seconds(time_two))))
@@ -36,7 +39,9 @@ def parse_args():
                   description='A small Python program for converting single-file albums to one file for each track using a CUE sheet as reference')
 
     parser.add_argument('cue_path')
-    parser.add_argument('-y', action='store_true', help='approve any requests for your approbation, i.e., before conversion')
+    parser.add_argument('-y',
+                        action='store_true',
+                        help='approve any requests for your approbation, i.e., before conversion')
 
     if len(sys.argv) > 1:
         return parser.parse_args()
@@ -92,9 +97,8 @@ class cue2tracks:
                     print(f"{key}: {metadata[key]:>{28-len(key)}}")
 
                 
-            """Parse audio file's name and extension"""            
+         
             audio_file = line.split()
-            # gets rid of first and last word and first and last character of middle section
             audio_file = " ".join(audio_file[1:-1])[1:-1] 
             file_extension = splitext(audio_file)[1]
             print(f"Detected file extension: {file_extension:>5}")
