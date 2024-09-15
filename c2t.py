@@ -123,9 +123,9 @@ class cue2tracks:
             for track in cue:
                 track_number = track.strip().split()[1]
                 track_flags = f"{tag_setting_flag}"\
-                            + f"\"TRACK={track_number}\" "
+                            + f"\"TRACKNUMBER={track_number}\" "
                 track_timestamp = ""
-                
+
                 for field in cue:
                     field_name = field.strip().split()[0]
                     if field_name == "INDEX":
@@ -152,8 +152,9 @@ class cue2tracks:
 
             print(f"Parsed {len(track_list)} tracks")
 
+            total_tracks = len(track_list)
             album_flags += f"{tag_setting_flag}"\
-                         + f"\"TOTALTRACKS={len(track_list)}\" "
+                         + f"\"TOTALTRACKS={total_tracks}\" "
             
             return album_flags, track_list, file_extension, audio_file
 
