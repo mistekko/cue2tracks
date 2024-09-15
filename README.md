@@ -14,7 +14,7 @@ This program uses a .cue file to guide it in splitting a single audio file with 
 * Does not work on multi-file cue/audio combinations (e.g., album-name-part1.flac, album-name-part2.flac)
 * Does not automatically write album cover to each file
   * while we work on this issue, you can use tools such as [puddletag](https://docs.puddletag.net/) for batch-writing of album covers
-
+* ThiS program does not yet name files usably. You'll have to use another program for this (like the aforementiond puddletag)
 ### Unlikely to ever be patched
 * Can only convert formats supported by your compilation of ffmpeg
 
